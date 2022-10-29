@@ -1,1 +1,51 @@
-
+name: Rsync
+description: 'Rsync files to a remote host'
+author: Leukeleu B.V.
+inputs:
+  src:
+    description: 'Source directory'
+    required: true
+  dest:
+    description: 'Destination directory'
+    required: true
+  host:
+    description: 'Remote host'
+    required: true
+  user:
+    description: 'Remote user'
+    required: true
+  key:
+    description: 'SSH private key'
+    required: true
+  port:
+    description: 'SSH port'
+    required: false
+    default: '22'
+  args:
+    description: 'Additional rsync arguments'
+    required: false
+    default: '-avz --delete-after'
+  ssh_args:
+    description: 'Additional ssh arguments'
+    required: false
+runs:
+    using: 'composite'
+    steps:
+      - name: Create SSH directory
+        run: mkdir -p ~/.ssh
+        shell: bash
+      - name: Create SSH config
+        run: |
+            echo "Host *" > ~/.ssh/config
+            echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+            echo "  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
+        shell: bash
+      - name: Create SSH key
+        run: echo "${{ inputs.key }}" > ~/.ssh/key
+        shell: bash
+      - name: Set SSH key permissions
+        run: chmod 600 ~/.ssh/key
+        shell: bash
+      - name: Rsync files
+        run: rsync -e "ssh -i ~/.ssh/key -p ${{ inputs.port }} ${{ inputs.ssh_args }}" ${{ inputs.args }} $GITHUB_WORKSPACE/${{ inputs.src }} ${{ inputs.user }}@${{ inputs.host }}:${{ inputs.dest }}
+        shell: bash
