@@ -24,7 +24,7 @@ inputs:
   args:
     description: 'Additional rsync arguments'
     required: false
-    default: '-avz --delete-after'
+    default: '-avz --delete-after --exclude=/maintenance.html'
   ssh_args:
     description: 'Additional ssh arguments'
     required: false
